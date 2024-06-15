@@ -7,6 +7,7 @@ from fastapi import UploadFile
 class VerifyPhoto(BaseModel):
     user_id: str = Field(..., example="example@gmail.com")
     binTypeGuess: Bin
+    file: str
 
 class User(BaseModel):
     id: str
@@ -19,3 +20,4 @@ class User(BaseModel):
 class CreateUser(User):
     class Config:
         from_attributes = True
+

@@ -37,23 +37,27 @@ async def mainScreen(id: str = Query(...)):
     return { id, "Kasia Kasia", "2016-08-29T09:12:33.001Z", 1005 }
 
 @app.post("/verify", response_model=VerifyPhotoResult)
-async def verifyPhoto(user_id: str, binTypeGuess: Bin, file: Annotated[bytes, File()]) -> VerifyPhotoResult:
+async def verifyPhoto(input: VerifyPhoto) -> VerifyPhotoResult:
     """
     Veryfies if photo and the selected bin are matching
     """
-    def encode_image(image_data):
-        return base64.b64encode(image_data).decode('utf-8')
+    def decode_image(base64_data: str) -> bytes:
+        return base64.b64decode(base64_data)
 
     try:
-        image = Image.open(io.BytesIO(file))
+        # image_data = decode_image(input.file)
+        # image = Image.open(io.BytesIO(image_data))
 
-        base64_image = encode_image(file)
+        # Prepare the base64 encoded image for the OpenAI API
+        # base64_image = base64.b64encode(image_data).decode('utf-8')
+        base64_image = input.file
+        
         
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {API_KEY}"
         }
-
+        print()
         payload = {
             "model": "gpt-4-vision-preview",
             "messages": [
@@ -62,12 +66,12 @@ async def verifyPhoto(user_id: str, binTypeGuess: Bin, file: Annotated[bytes, Fi
                 "content": [
                 {
                     "type": "text",
-                    "text": f"Given the image, determine if it is paper, glass, bio, metal/plastic, or mixed? And please provide a short explanation. Make the JSON response as follows: " + "{\"correctBinType\": [ PAPER, GLASS, BIO, METAL_PLASTIC, MIXED ]}, \"notesFromAI\": \"string\""
+                    "text": f"Given the image, determine if it is paper, glass, bio, metal/plastic, or mixed? And please provide a short explanation. Make the JSON response as follows, and don't use formatting symbols: " + "{\"correctBinType\": str [ PAPER, GLASS, BIO, METAL_PLASTIC, MIXED ]}, \"notesFromAI\": \"string\""
                 },
                 {
                     "type": "image_url",
                     "image_url": {
-                    "url": f"data:image/jpeg;base64,{base64_image}"
+                    "url": f"data:image/jpg;base64,{base64_image}"
                     }
                 }
                 ]
@@ -76,14 +80,18 @@ async def verifyPhoto(user_id: str, binTypeGuess: Bin, file: Annotated[bytes, Fi
             "max_tokens": 50
         }
         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-        choices = response.json().get("choices", [{"message": {"content": "Something went wrong"}}])[0]["message"]["content"]
+        print(response.json())
+        choices = response.json().get("choices", [])[0]["message"]["content"]
+        print('choices', choices)
         ai_response_json = json.loads(choices)
-        isBinTypeGuessCorrect = ai_response_json.get("correctBinType", "")[0] == binTypeGuess.value
-        print(isBinTypeGuessCorrect, ai_response_json.get("correctBinType", "")[0], binTypeGuess.value)
+        isBinTypeGuessCorrect = ai_response_json.get("correctBinType", "") == input.binTypeGuess.value
+        print(isBinTypeGuessCorrect, ai_response_json.get("correctBinType", ""), input.binTypeGuess.value)
         pointsEarned = 0
+        print(ai_response_json)
         if isBinTypeGuessCorrect:
             # TODO: Add points to user
             pointsEarned = 10
+        print("hello")
         return {
             "status_code": 200,
             "payload": {
