@@ -15,6 +15,11 @@ from sqlalchemy.orm import Session
 from openai import OpenAI
 import json
 import base64
+import logging
+
+logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(tags=['EcoFun Main API'])
 
@@ -81,10 +86,15 @@ async def verifyPhoto(input: VerifyPhoto) -> VerifyPhotoResult:
         }
         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
         print(response.json())
+
+        logger.info(f"ChatGPT response: {response.json()}")
         choices = response.json().get("choices", [])[0]["message"]["content"]
+        logger.info(f"choices: {choices}")
         print('choices', choices)
         ai_response_json = json.loads(choices)
+        logger.info(f"ai_response_json: {ai_response_json}")
         isBinTypeGuessCorrect = ai_response_json.get("correctBinType", "") == input.binTypeGuess.value
+        logger.info(f"isBinTypeGuessCorrect: {isBinTypeGuessCorrect}")
         print(isBinTypeGuessCorrect, ai_response_json.get("correctBinType", ""), input.binTypeGuess.value)
         pointsEarned = 0
         print(ai_response_json)
@@ -92,6 +102,7 @@ async def verifyPhoto(input: VerifyPhoto) -> VerifyPhotoResult:
             # TODO: Add points to user
             pointsEarned = 10
         print("hello")
+        logger.info(f"Returning Response")
         return {
             "status_code": 200,
             "payload": {
