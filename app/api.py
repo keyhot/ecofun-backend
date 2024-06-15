@@ -3,6 +3,7 @@ import httpx
 import requests
 from fastapi import FastAPI, File, UploadFile, Query, Depends
 from fastapi.exceptions import HTTPException
+from typing import Annotated
 from PIL import Image
 from .constants import API_KEY
 from .schemas import VerifyPhoto
@@ -36,20 +37,17 @@ async def mainScreen(id: str = Query(...)):
     return { id, "Kasia Kasia", "2016-08-29T09:12:33.001Z", 1005 }
 
 @app.post("/verify")
-async def verifyPhoto(user_id: str, binTypeGuess: Bin, photo: UploadFile = File(...)):
+async def verifyPhoto(user_id: str, binTypeGuess: Bin, file: Annotated[bytes, File()]):
     """
     Veryfies if photo and the selected bin are matching
     """
     def encode_image(image_data):
         return base64.b64encode(image_data).decode('utf-8')
-        
-    if not photo.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Only images are supported")
-    try:
-        image_data = await photo.read()
-        image = Image.open(io.BytesIO(image_data))
 
-        base64_image = encode_image(image_data)
+    try:
+        image = Image.open(io.BytesIO(file))
+
+        base64_image = encode_image(file)
         
         headers = {
             "Content-Type": "application/json",
