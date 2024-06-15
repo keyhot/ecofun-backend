@@ -1,13 +1,20 @@
 import httpx
-from fastapi import FastAPI, File, UploadFile, Query
+from fastapi import FastAPI, File, UploadFile, Query, Depends
 from fastapi.exceptions import HTTPException
 from PIL import Image
 from .constants import API_KEY
 from .schemas import VerifyPhoto
 from .responses import MainScreen, VerifyPhotoResult
+from .database import *
+from .routes import users
+import app.models as models
+from sqlalchemy.orm import Session
 import base64
 
-app = FastAPI()
+app = FastAPI(tags=['EcoFun Main API'])
+
+models.Base.metadata.create_all(bind=engine)
+app.include_router(users.router)
 
 @app.get("/")
 async def root():
