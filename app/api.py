@@ -91,17 +91,15 @@ async def verifyPhoto(input: VerifyPhoto) -> VerifyPhotoResult:
         choices = response.json().get("choices", [])[0]["message"]["content"]
         logger.info(f"choices: {choices}")
         print('choices', choices)
-        ai_response_json = json.loads(choices)
-        logger.info(f"ai_response_json: {ai_response_json}")
-        isBinTypeGuessCorrect = ai_response_json.get("correctBinType", "") == input.binTypeGuess.value
+        isBinTypeGuessCorrect = choices.get("correctBinType", "") == input.binTypeGuess.value
         logger.info(f"isBinTypeGuessCorrect: {isBinTypeGuessCorrect}")
-        print(isBinTypeGuessCorrect, ai_response_json.get("correctBinType", ""), input.binTypeGuess.value)
+        print(isBinTypeGuessCorrect, choices.get("correctBinType", ""), input.binTypeGuess.value)
         pointsEarned = 0
-        print(ai_response_json)
+        print("hello1")
         if isBinTypeGuessCorrect:
             # TODO: Add points to user
             pointsEarned = 10
-        print("hello")
+        print("hello2")
         logger.info(f"Returning Response")
         return {
             "status_code": 200,
