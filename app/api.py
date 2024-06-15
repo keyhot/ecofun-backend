@@ -9,6 +9,10 @@ import base64
 
 app = FastAPI()
 
+@app.get("/")
+async def root():
+    return {"message": "Hello from EcoFun!"}
+
 @app.get("/mainScreen")
 async def mainScreen(id: str = Query(...)):
     """
