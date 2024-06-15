@@ -71,7 +71,7 @@ async def verifyPhoto(input: VerifyPhoto) -> VerifyPhotoResult:
                 "content": [
                 {
                     "type": "text",
-                    "text": f"Given the image, determine if it is paper, glass, bio, metal/plastic, or mixed? And please provide a short explanation. Make the JSON response as follows, and don't use formatting symbols: " + "{\"correctBinType\": str [ PAPER, GLASS, BIO, METAL_PLASTIC, MIXED ]}, \"notesFromAI\": \"string\""
+                    "text": f"Given the image, determine if it is paper, glass, bio, metal/plastic, or mixed? And please provide a short explanation. Make the JSON response as follows, and don't use formatting symbols: " + "{\"correctBinType\": str [ PAPER, GLASS, BIO, METAL_PLASTIC, MIXED ]}, \"notesFromAI\": \"string\"}"
                 },
                 {
                     "type": "image_url",
@@ -90,16 +90,20 @@ async def verifyPhoto(input: VerifyPhoto) -> VerifyPhotoResult:
         logger.info(f"ChatGPT response: {response.json()}")
         choices = response.json().get("choices", [])[0]["message"]["content"]
         logger.info(f"choices: {choices}")
-        print('choices', choices)
-        isBinTypeGuessCorrect = choices.get("correctBinType", "") == input.binTypeGuess.value
+        logger.info(f"choices: {type(choices)}")
+        ai_response_json = json.loads(choices)
+        logger.info(f"ai_response_json: {ai_response_json}")
+        logger.info(f"ai_response_json: {type(ai_response_json)}")
+
+        isBinTypeGuessCorrect = ai_response_json.get("correctBinType", "") == input.binTypeGuess.value
         logger.info(f"isBinTypeGuessCorrect: {isBinTypeGuessCorrect}")
-        print(isBinTypeGuessCorrect, choices.get("correctBinType", ""), input.binTypeGuess.value)
+        print(isBinTypeGuessCorrect, ai_response_json.get("correctBinType", ""), input.binTypeGuess.value)
         pointsEarned = 0
-        print("hello1")
+        print(ai_response_json)
         if isBinTypeGuessCorrect:
             # TODO: Add points to user
             pointsEarned = 10
-        print("hello2")
+        print("hello")
         logger.info(f"Returning Response")
         return {
             "status_code": 200,
