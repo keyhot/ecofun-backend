@@ -71,7 +71,7 @@ async def verifyPhoto(input: VerifyPhoto) -> VerifyPhotoResult:
                 "content": [
                 {
                     "type": "text",
-                    "text": f"Given the image, determine if it is paper, glass, bio, metal/plastic, or mixed? And please provide a short explanation. Make the JSON response as follows, and don't use formatting symbols: " + "{\"correctBinType\": str [ PAPER, GLASS, BIO, METAL_PLASTIC, MIXED ]}, \"notesFromAI\": \"string\"}"
+                    "text": f"Given the image, determine if it is paper, glass, bio, metal/plastic, or mixed? And please provide a short explanation. Make the JSON response as exactly as follows, and don't use formatting symbols: " + "{\"correctBinType\": str [ PAPER, GLASS, BIO, METAL_PLASTIC, MIXED ]}, \"notesFromAI\": \"string\"}"
                 },
                 {
                     "type": "image_url",
