@@ -85,10 +85,13 @@ async def verifyPhoto(user_id: str, binTypeGuess: Bin, file: Annotated[bytes, Fi
             # TODO: Add points to user
             pointsEarned = 10
         return {
-            "isBinTypeGuessCorrect": isBinTypeGuessCorrect,
-            "pointsEarned": pointsEarned,
-            "correctBinType": ai_response_json.get("correctBinType", ""),
-            "notesFromAI": ai_response_json.get("notesFromAI", "")
+            "status_code": 200,
+            "payload": {
+                "isBinTypeGuessCorrect": isBinTypeGuessCorrect,
+                "pointsEarned": pointsEarned,
+                "correctBinType": ai_response_json.get("correctBinType", ""),
+                "notesFromAI": ai_response_json.get("notesFromAI", "")
+            }
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
