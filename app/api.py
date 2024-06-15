@@ -94,7 +94,7 @@ async def verifyPhoto(user_id: str, binTypeGuess: Bin, file: Annotated[bytes, Fi
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e) + "Something went wrong!")
 
 @app.post("/gemini")
 async def verifyPhoto(user_id: str, binTypeGuess: Bin, photo: UploadFile = File(...)):
