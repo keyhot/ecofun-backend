@@ -37,7 +37,7 @@ async def mainScreen(id: str = Query(...)):
     return { id, "Kasia Kasia", "2016-08-29T09:12:33.001Z", 1005 }
 
 @app.post("/verify")
-async def verifyPhoto(user_id: str, binTypeGuess: Bin, file: Annotated[bytes, File()]):
+async def verifyPhoto(user_id: str, binTypeGuess: Bin, file: Annotated[bytes, File()]) -> VerifyPhotoResult:
     """
     Veryfies if photo and the selected bin are matching
     """

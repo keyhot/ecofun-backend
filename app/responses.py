@@ -15,7 +15,8 @@ class MainScreen(BaseModel):
     creationDate: str = Field(..., example="2016-08-29T09:12:33.001Z")
     pointsAmount: int = Field(..., example=1005)
 
-class VerifyPhotoResult(BaseModel):
+
+class VerifyPhotoPayload(BaseModel):
     isBinTypeGuessCorrect: bool
     pointsEarned: int = Field(..., example=2)
     correctBinType: Bin
@@ -24,3 +25,8 @@ class VerifyPhotoResult(BaseModel):
         description="If wrong there will be an explanation why",
         example="Oh no, your guess was wrong, you should use the PAPER bin."
     )
+
+class VerifyPhotoResult(BaseModel):
+    status_code: int = Field(..., example=200)
+    payload: VerifyPhotoPayload
+
