@@ -23,4 +23,4 @@ class VerifyPhotoResult(BaseModel):
         None,
         description="If wrong there will be an explanation why",
         example="Oh no, your guess was wrong, you should use the PAPER bin."
-    )   
+    )
