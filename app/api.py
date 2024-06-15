@@ -80,7 +80,8 @@ async def verifyPhoto(user_id: str, binTypeGuess: Bin, photo: UploadFile = File(
         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
         choices = response.json().get("choices", [{"message": {"content": "Something went wrong"}}])[0]["message"]["content"]
         ai_response_json = json.loads(choices)
-        isBinTypeGuessCorrect = ai_response_json.get("correctBinType", "") == binTypeGuess
+        isBinTypeGuessCorrect = ai_response_json.get("correctBinType", "")[0] == binTypeGuess.value
+        print(isBinTypeGuessCorrect, ai_response_json.get("correctBinType", "")[0], binTypeGuess.value)
         pointsEarned = 0
         if isBinTypeGuessCorrect:
             # TODO: Add points to user
