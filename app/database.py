@@ -29,4 +29,14 @@ data = Table(
     Column('score', Integer)
 )
 
+data2 = Table(
+    "marketplaces",
+    metadata,
+    Column('id', Integer, primary_key=True),
+    Column('image', String),
+    Column('title', String),
+    Column('description', String),
+    Column('price', Integer),
+)
+
 Session = sessionmaker(bind=engine)

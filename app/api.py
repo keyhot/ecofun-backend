@@ -5,11 +5,11 @@ from fastapi import FastAPI, File, UploadFile, Query, Depends
 from fastapi.exceptions import HTTPException
 from typing import Annotated
 from PIL import Image
-from .constants import API_KEY
+from .constants import API_KEY, IS_PROD
 from .schemas import VerifyPhoto
 from .responses import MainScreen, VerifyPhotoResult, Bin
 from .database import *
-from .routes import users
+from .routes import users, marketplaces
 import app.models as models
 from sqlalchemy.orm import Session
 from openai import OpenAI
@@ -24,7 +24,10 @@ logger = logging.getLogger(__name__)
 app = FastAPI(tags=['EcoFun Main API'])
 
 models.Base.metadata.create_all(bind=engine)
-app.include_router(users.router)
+if not IS_PROD:
+    app.include_router(users.router)
+    app.include_router(marketplaces.router)
+
 
 client = OpenAI(
     api_key=API_KEY,

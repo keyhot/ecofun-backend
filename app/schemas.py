@@ -9,6 +9,7 @@ class VerifyPhoto(BaseModel):
     binTypeGuess: Bin
     file: str
 
+
 class User(BaseModel):
     id: str
     score: int
@@ -18,6 +19,22 @@ class User(BaseModel):
 
 
 class CreateUser(User):
+    class Config:
+        from_attributes = True
+
+
+class Marketplace(BaseModel):
+    id: int
+    image: str
+    title: str
+    description: str
+    price: int
+
+    class Config:
+        from_attributes = True
+
+
+class CreateMarketplace(Marketplace):
     class Config:
         from_attributes = True
 
