@@ -125,7 +125,7 @@ async def verifyPhoto(input: VerifyPhoto, db: Session = Depends(get_db)) -> Veri
         if isBinTypeGuessCorrect:
             logger.info(f"Updating user score")
             pointsEarned = 10
-            update_or_create_user_score(input.user_id, pointsEarned, db)
+            update_or_create_user_score(input.user_id, 10, db)
         logger.info(f"Returning Response")
         payload = VerifyPhotoPayload(
             isBinTypeGuessCorrect=isBinTypeGuessCorrect,
