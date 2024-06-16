@@ -7,8 +7,9 @@ from typing import Annotated
 from PIL import Image
 from .constants import API_KEY, IS_PROD
 from .schemas import VerifyPhoto
-from .responses import MainScreen, VerifyPhotoResult, Bin
-from .database import *
+from .responses import MainScreen, VerifyPhotoPayload, VerifyPhotoResult, Bin
+from .helpers import update_or_create_user_score
+from .database import engine, get_db
 from .routes import users, marketplaces
 import app.models as models
 from sqlalchemy.orm import Session
@@ -45,7 +46,7 @@ async def mainScreen(id: str = Query(...)):
     return { id, "Kasia Kasia", "2016-08-29T09:12:33.001Z", 1005 }
 
 @app.post("/verify", response_model=VerifyPhotoResult)
-async def verifyPhoto(input: VerifyPhoto) -> VerifyPhotoResult:
+async def verifyPhoto(input: VerifyPhoto, db: Session = Depends(get_db)) -> VerifyPhotoResult:
     """
     Veryfies if photo and the selected bin are matching
     """
@@ -65,7 +66,6 @@ async def verifyPhoto(input: VerifyPhoto) -> VerifyPhotoResult:
             "Content-Type": "application/json",
             "Authorization": f"Bearer {API_KEY}"
         }
-        print()
         payload = {
             "model": "gpt-4-vision-preview",
             "messages": [
@@ -74,7 +74,7 @@ async def verifyPhoto(input: VerifyPhoto) -> VerifyPhotoResult:
                 "content": [
                 {
                     "type": "text",
-                    "text": f"Given the image, determine if it is paper, glass, bio, metal/plastic, or mixed? And please provide a short explanation. Make the JSON response as exactly as follows, and don't use formatting symbols: " + "{\"correctBinType\": str [ PAPER, GLASS, BIO, METAL_PLASTIC, MIXED ]}, \"notesFromAI\": \"string\"}"
+                    "text": f"Given the image, determine if it is paper, glass, bio, metal/plastic, or mixed? And please provide a short explanation. Make the JSON response is exactly as follows, and do not use formatting symbols: " + "{\"correctBinType\": str [ PAPER, GLASS, BIO, METAL_PLASTIC, MIXED ]}, \"notesFromAI\": \"string\"}"
                 },
                 {
                     "type": "image_url",
@@ -85,7 +85,7 @@ async def verifyPhoto(input: VerifyPhoto) -> VerifyPhotoResult:
                 ]
             }
             ],
-            "max_tokens": 50
+            "max_tokens": 60
         }
         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
         print(response.json())
@@ -93,40 +93,23 @@ async def verifyPhoto(input: VerifyPhoto) -> VerifyPhotoResult:
         logger.info(f"ChatGPT response: {response.json()}")
         choices = response.json().get("choices", [])[0]["message"]["content"]
         logger.info(f"choices: {choices}")
-        logger.info(f"choices: {type(choices)}")
         ai_response_json = json.loads(choices)
         logger.info(f"ai_response_json: {ai_response_json}")
-        logger.info(f"ai_response_json: {type(ai_response_json)}")
 
         isBinTypeGuessCorrect = ai_response_json.get("correctBinType", "") == input.binTypeGuess.value
         logger.info(f"isBinTypeGuessCorrect: {isBinTypeGuessCorrect}")
-        print(isBinTypeGuessCorrect, ai_response_json.get("correctBinType", ""), input.binTypeGuess.value)
         pointsEarned = 0
-        print(ai_response_json)
         if isBinTypeGuessCorrect:
-            # TODO: Add points to user
+            logger.info(f"Updating user score")
             pointsEarned = 10
-        print("hello")
+            update_or_create_user_score(input.user_id, pointsEarned, db)
         logger.info(f"Returning Response")
-        return {
-            "status_code": 200,
-            "payload": {
-                "isBinTypeGuessCorrect": isBinTypeGuessCorrect,
-                "pointsEarned": pointsEarned,
-                "correctBinType": ai_response_json.get("correctBinType", ""),
-                "notesFromAI": ai_response_json.get("notesFromAI", "")
-            }
-        }
+        payload = VerifyPhotoPayload(
+            isBinTypeGuessCorrect=isBinTypeGuessCorrect,
+            pointsEarned=pointsEarned,
+            correctBinType=Bin(ai_response_json.get("correctBinType", "")),
+            notesFromAI=ai_response_json.get("notesFromAI", "")
+        )
+        return VerifyPhotoResult(payload=payload)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e) + "Something went wrong!")
-
-@app.post("/gemini")
-async def verifyPhoto(user_id: str, binTypeGuess: Bin, photo: UploadFile = File(...)):
-    """
-    Veryfies if photo and the selected bin are matching
-    """
-    if not photo.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Only images are supported")
-    photo = Image.open(photo.file)
-
-    return VerifyPhotoResult(True, 2, "PAPER", "Oh no, your guess was wrong, you should use the PAPER bin.")
+        raise HTTPException(status_code=500, detail=str(e))

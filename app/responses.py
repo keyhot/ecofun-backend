@@ -27,6 +27,6 @@ class VerifyPhotoPayload(BaseModel):
     )
 
 class VerifyPhotoResult(BaseModel):
-    status_code: int = Field(..., example=200)
+    status_code: int = Field(200, example=200)
     payload: VerifyPhotoPayload
 
