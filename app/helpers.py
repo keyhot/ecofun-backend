@@ -51,7 +51,7 @@ def update_user(update_data: schemas.User, id: int, db: Session = Depends(get_db
 
 def update_or_create_user_score(user_id: str, pointsEarned: int, db: Session) -> models.UserScore:
     user = db.query(models.UserScore).filter(models.UserScore.id == user_id).first()
-
+    logger.info(f"User: {user}")
     if user:
         logger.info(f"Adding {pointsEarned} points to user {user_id}: {user.score} -> {user.score + pointsEarned}")
         user.score = user.score + pointsEarned
@@ -77,11 +77,13 @@ def create_marketplace(marketplace_data: schemas.CreateMarketplace, db: Session 
     db.refresh(new_marketplace)
     return [new_marketplace]
 
-def get_marketplace_by_id(id: int, db: Session = Depends(get_db)) -> schemas.CreateMarketplace:
+def get_marketplace_by_id(id: int, db: Session) -> dict:
+    logger.info(f"Getting marketplace with id: {id}")
     marketplace = db.query(models.MarketplaceUnit).filter(models.MarketplaceUnit.id == id).first()
     if marketplace is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"The id: {id} you requested for does not exist")
-    return marketplace
+    logger.info(f"Returning marketplace with id: {id}")
+    return marketplace.as_dict()
 
 def delete_marketplace(id: int, db: Session = Depends(get_db)):
     marketplace_to_delete = db.query(models.MarketplaceUnit).filter(models.MarketplaceUnit.id == id)

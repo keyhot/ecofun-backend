@@ -8,7 +8,7 @@ from PIL import Image
 from .constants import API_KEY, IS_PROD
 from .schemas import VerifyPhoto
 from .responses import MainScreen, VerifyPhotoPayload, VerifyPhotoResult, Bin, MainScreen
-from .helpers import update_or_create_user_score, get_marketplaces, get_user_by_id
+from .helpers import update_or_create_user_score, get_marketplaces, get_user_by_id, get_marketplace_by_id
 from .database import engine, get_db
 from .routes import users, marketplaces
 import app.models as models
@@ -38,6 +38,16 @@ client = OpenAI(
 @app.get("/")
 async def root():
     return {"message": "Hello from EcoFun!"}
+
+@app.post("/claim")
+async def claimTicket(user_id: str = Query(...), mplace_id: int = Query(...), db: Session = Depends(get_db)):
+    """
+    Claims a ticket
+    """
+    marketplace = get_marketplace_by_id(mplace_id, db)
+    price = marketplace["price"]
+    update_or_create_user_score(user_id, -price, db)
+    return {"message": "Ticket claimed!"}
 
 @app.get("/mainScreen", response_model=MainScreen)
 async def mainScreen(id: str = Query(...), db: Session = Depends(get_db)):
