@@ -39,7 +39,7 @@ client = OpenAI(
 async def root():
     return {"message": "Hello from EcoFun!"}
 
-@app.get("/mainScreen")
+@app.get("/mainScreen", response_model=MainScreen)
 async def mainScreen(id: str = Query(...), db: Session = Depends(get_db)):
     """
     Returns info about user and tickets to redeem
