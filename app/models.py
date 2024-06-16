@@ -5,7 +5,7 @@ class UserScore(Base):
     __tablename__ = "users"
 
     id = Column(String,primary_key=True,nullable=False)
-    score = Column(Integer,nullable=False, server_default=text('0'))
+    score = Column(Integer,nullable=False)
 
     def as_dict(self):
        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
