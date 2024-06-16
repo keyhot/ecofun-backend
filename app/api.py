@@ -44,6 +44,7 @@ async def mainScreen(id: str = Query(...), db: Session = Depends(get_db)):
     """
     Returns info about user and tickets to redeem
     """
+    update_or_create_user_score(id, 0, db)
     logger.info("Requesting marketplaces")
     marketplaces = get_marketplaces(db)
     marketplaces = [marketplace.as_dict() for marketplace in marketplaces]
