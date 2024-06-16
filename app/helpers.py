@@ -7,6 +7,11 @@ from starlette import status
 import app.models as models
 import app.schemas as schemas
 from app.database import get_db
+import logging
+
+logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+
+logger = logging.getLogger(__name__)
 
 # NOTE: Depends() doesn't work with simple functions, only with routes. So we need to use it with a route and then call the function from there
 
@@ -48,8 +53,10 @@ def update_or_create_user_score(user_id: str, pointsEarned: int, db: Session) ->
     user = db.query(models.UserScore).filter(models.UserScore.id == user_id).first()
 
     if user:
+        logger.info(f"Adding {pointsEarned} points to user {user_id}: {user.score} -> {user.score + pointsEarned}")
         user.score = user.score + pointsEarned
     else:
+        logger.info(f"Creating new user {user_id} with {pointsEarned} points")
         user = models.UserScore(id=user_id, score=pointsEarned)
         db.add(user)
     
