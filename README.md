@@ -4,6 +4,7 @@ This project is a backend application built with FastAPI, designed to provide a 
 
 ## Requirements
 Python ^3.12
+
 Poetry ^1.7.1
 
 ## Installation
