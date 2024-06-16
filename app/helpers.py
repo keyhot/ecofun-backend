@@ -1,6 +1,8 @@
 from typing import List
 from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import class_mapper
+import sqlalchemy
 from starlette import status
 import app.models as models
 import app.schemas as schemas
@@ -21,11 +23,11 @@ def create_user(user_data: schemas.CreateUser, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return [new_user]
 
-def get_user_by_id(id: int, db: Session = Depends(get_db)):
+def get_user_by_id(id: int, db: Session) -> dict:
     user = db.query(models.UserScore).filter(models.UserScore.id == id).first()
     if user is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"The id: {id} you requested for does not exist")
-    return user
+    return user.as_dict()
 
 def delete_user(id: int, db: Session = Depends(get_db)):
     user_to_delete = db.query(models.UserScore).filter(models.UserScore.id == id)

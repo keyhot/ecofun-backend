@@ -7,12 +7,13 @@ from typing import Annotated
 from PIL import Image
 from .constants import API_KEY, IS_PROD
 from .schemas import VerifyPhoto
-from .responses import MainScreen, VerifyPhotoPayload, VerifyPhotoResult, Bin
-from .helpers import update_or_create_user_score
+from .responses import MainScreen, VerifyPhotoPayload, VerifyPhotoResult, Bin, MainScreen
+from .helpers import update_or_create_user_score, get_marketplaces, get_user_by_id
 from .database import engine, get_db
 from .routes import users, marketplaces
 import app.models as models
 from sqlalchemy.orm import Session
+from sqlalchemy import inspect
 from openai import OpenAI
 import json
 import base64
@@ -39,11 +40,22 @@ async def root():
     return {"message": "Hello from EcoFun!"}
 
 @app.get("/mainScreen")
-async def mainScreen(id: str = Query(...)):
+async def mainScreen(id: str = Query(...), db: Session = Depends(get_db)):
     """
     Returns info about user and tickets to redeem
     """
-    return { id, "Kasia Kasia", "2016-08-29T09:12:33.001Z", 1005 }
+    logger.info("Requesting marketplaces")
+    marketplaces = get_marketplaces(db)
+    marketplaces = [marketplace.as_dict() for marketplace in marketplaces]
+    logger.info("Requesting user info")
+    user = get_user_by_id(id, db)
+    logger.info("Returning response")
+    response = MainScreen(
+        id=id,
+        marketplaces=marketplaces,
+        pointsAmount=user["score"]
+    )
+    return response
 
 @app.post("/verify", response_model=VerifyPhotoResult)
 async def verifyPhoto(input: VerifyPhoto, db: Session = Depends(get_db)) -> VerifyPhotoResult:
@@ -74,7 +86,7 @@ async def verifyPhoto(input: VerifyPhoto, db: Session = Depends(get_db)) -> Veri
                 "content": [
                 {
                     "type": "text",
-                    "text": f"Given the image, determine if it is paper, glass, bio, metal/plastic, or mixed? And please provide a short explanation. Make the JSON response is exactly as follows, and do not use formatting symbols: " + "{\"correctBinType\": str [ PAPER, GLASS, BIO, METAL_PLASTIC, MIXED ]}, \"notesFromAI\": \"string\"}"
+                    "text": f"Given the image, determine in which bin I should put it into: paper, glass, bio, metal/plastic, or mixed? And please provide a very short explanation. Make the JSON response is exactly as follows, and do not use formatting symbols: " + "{\"correctBinType\": str [ PAPER, GLASS, BIO, METAL_PLASTIC, MIXED ]}, \"notesFromAI\": \"string\"}"
                 },
                 {
                     "type": "image_url",
@@ -85,7 +97,7 @@ async def verifyPhoto(input: VerifyPhoto, db: Session = Depends(get_db)) -> Veri
                 ]
             }
             ],
-            "max_tokens": 60
+            "max_tokens": 200
         }
         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
         print(response.json())

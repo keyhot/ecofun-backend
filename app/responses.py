@@ -11,8 +11,7 @@ class Bin(Enum):
 
 class MainScreen(BaseModel):
     id: str = Field(..., example="example@gmail.com")
-    name: str = Field(..., example="Kasia Kasia")
-    creationDate: str = Field(..., example="2016-08-29T09:12:33.001Z")
+    marketplaces: list = Field(..., example=[{"id": 1, "image": "https://example.com/image.jpg", "title": "Title", "description": "Description", "price": 100}])
     pointsAmount: int = Field(..., example=1005)
 
 
