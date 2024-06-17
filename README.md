@@ -2,6 +2,9 @@
 ## FastAPI + PostgreSQL Backend
 This project is a backend application built with FastAPI, designed to provide a robust and scalable RESTful API with PostgreSQL as the database for the EcoFun project.
 
+## App Demo Video
+https://www.youtube.com/shorts/P8XtMF8sVk8
+
 ## Requirements
 Python ^3.12
 
